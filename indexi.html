@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Dump & Calendar</title>
+  
+  <!-- React & React-DOM -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for in-browser JSX compilation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
+</head>
+<body style="margin: 0; background: #14161F; color: #E8E6E1;">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect, useCallback } = React;
+
+    // --- Inlined SVG Icons ---
+    const Mic = ({ size = 20, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    );
+    const Square = ({ size = 20, color = "currentColor", fill = "none" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+    );
+    const Check = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    );
+    const Trash2 = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+    );
+    const Sparkles = ({ size = 20, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275 1.275L12 3Z"/></svg>
+    );
+    const AlertCircle = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    );
+    const ListTodo = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
+    );
+    const CalendarIcon = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    );
+    const NotebookPen = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M18.4 2.6a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.4-9.4z"/></svg>
+    );
+    const Heart = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+    );
+    const Trophy = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+    );
+    const Lock = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    );
+    const ChevronLeft = ({ size = 20, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    );
+    const ChevronRight = ({ size = 20, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    );
+    const Plus = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    );
+    const PartyPopper = ({ size = 20, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5.8 11.3 2 22l10.7-3.79d"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24 2.24"/><path d="M8 22l2.24-2.24"/><path d="m11 13 8.35-8.35a2 2 0 0 0-2.83-2.83L8.17 10.17"/></svg>
+    );
+    const Home = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    );
+    const Backpack = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M8 21v-5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v5"/><line x1="8" y1="10" x2="16" y2="10"/></svg>
+    );
+    const Download = ({ size = 18, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    );
+    const SearchIcon = ({ size = 16, color = "currentColor" }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    );
+
+    // Local Storage Wrapper
+    if (!window.storage) {
+      window.storage = {
+        get: async (key) => ({ value: localStorage.getItem(key) }),
+        set: async (key, val) => localStorage.setItem(key, val)
+      };
+    }
+
+    const BUCKETS = [
+      { key: "today", label: "Today", accent: "#E5707E" },
+      { key: "week", label: "This week", accent: "#F2A65A" },
+      { key: "someday", label: "Someday", accent: "#7FA88F" },
+    ];
+
+    const TASKS_KEY = "braindump:tasks";
+    const NOTES_KEY = "braindump:notes";
+    const COMPANION_KEY = "braindump:companion";
+    const STATS_KEY = "braindump:stats";
+    const DAYCARE_KEY = "braindump:daycare";
+    const INVENTORY_KEY = "braindump:inventory";
+    const TOKENS_KEY = "braindump:tokens";
+    const LEVEL_MILESTONES_KEY = "braindump:levelMilestones";
+    const DAILY_PET_LIMIT = 5;
+
+    const GROWTH_MIN = [0, 8, 20, 40, 70];
+    const STAGE_SIZES = [28, 38, 50, 64, 80];
+
+    // --- Leveling System: every pet can reach Level 100 ---
+    const LEVEL_CAP = 100;
+    const XP_PER_LEVEL = 10; // XP needed to gain one level
+    const MAX_POINTS = (LEVEL_CAP - 1) * XP_PER_LEVEL; // XP total at Level 100
+    const LEVELS_PER_STAGE = LEVEL_CAP / STAGE_SIZES.length; // 5 visual stages spread across 100 levels
+
+    function levelForPoints(points) {
+      return Math.min(LEVEL_CAP, Math.floor(points / XP_PER_LEVEL) + 1);
+    }
+
+    // Helper: Date String
+    function formatDateKey(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    // 30 Initial Starter Tasks[span_2](start_span)[span_2](end_span)
+    const INITIAL_TASKS = [
+      { id: "t1", text: "Sanitize kitchen countertops and handles", bucket: "today", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t2", text: "Take daily vitamins and supplements", bucket: "today", category: "health", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t3", text: "Clear out spam messages from inbox", bucket: "today", category: "work", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t4", text: "Do 15 minutes of light yoga stretching", bucket: "today", category: "health", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t5", text: "Sweep and mop hallway floors", bucket: "today", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t6", text: "Brainstorm concepts for new illustration", bucket: "today", category: "creative", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t7", text: "Check up on an old friend via text message", bucket: "today", category: "social", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t8", text: "Update active to-do labels and priorities", bucket: "today", category: "work", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t9", text: "Empty all wastebaskets around the house", bucket: "today", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t10", text: "Prepare healthy high-protein breakfast", bucket: "today", category: "health", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+
+      { id: "t11", text: "Sort and fold freshly laundered clothes", bucket: "week", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t12", text: "Plan nutritious meal menu for the week", bucket: "week", category: "health", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t13", text: "Draft quarterly progress report outline", bucket: "week", category: "work", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t14", text: "Prune dead leaves off indoor ferns", bucket: "week", category: "health", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t15", text: "Clean bathroom tiles and scrub bathtub", bucket: "week", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t16", text: "Read three chapters of a non-fiction book", bucket: "week", category: "creative", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t17", text: "Organize computer desktop files into folders", bucket: "week", category: "work", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t18", text: "Run local errands and pick up dry cleaning", bucket: "week", category: "social", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t19", text: "Wipe down refrigerator shelves and drawers", bucket: "week", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t20", text: "Practice a new song or instrument chords", bucket: "week", category: "creative", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+
+      { id: "t21", text: "Deep clean windows and window sills", bucket: "someday", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t22", text: "Explore a new hiking trail outside town", bucket: "someday", category: "health", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t23", text: "Redesign personal portfolio website layout", bucket: "someday", category: "creative", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t24", text: "Organize garage storage bins and tools", bucket: "someday", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t25", text: "Schedule annual wellness medical checkup", bucket: "someday", category: "health", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t26", text: "Plan a weekend camping trip itinerary", bucket: "someday", category: "social", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t27", text: "Backup cloud drive documents and archives", bucket: "someday", category: "work", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t28", text: "Clear dust off ceiling fan blades and vents", bucket: "someday", category: "cleaning", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t29", text: "Write out long-term career goals journal entry", bucket: "someday", category: "creative", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+      { id: "t30", text: "Donate unused clothes to local community center", bucket: "someday", category: "social", dateKey: formatDateKey(new Date()), done: false, createdAt: Date.now() },
+    ];
+
+    // Every 5 levels gets its own flavor instead of a repeated "Level Up!" — checkpoints
+    // cycle through this list so celebrations feel distinct instead of copy-pasted.
+    const MILESTONE_FLAVORS = [
+      { title: "Warming Up", blurb: "the first few steps are the hardest — those are done" },
+      { title: "Finding a Rhythm", blurb: "small stuff is starting to add up" },
+      { title: "Momentum", blurb: "this is starting to feel less like pushing a rock uphill" },
+      { title: "Solid Groove", blurb: "a real pattern is forming here" },
+      { title: "Getting Good", blurb: "noticeably further along than where you started" },
+      { title: "Steady Hands", blurb: "consistency is doing a lot of quiet work" },
+      { title: "Leveling Up For Real", blurb: "this one's earned, not given" },
+      { title: "In the Zone", blurb: "whatever you're doing, keep doing it" },
+      { title: "Quiet Confidence", blurb: "less flashy, still real progress" },
+      { title: "Halfway Mark", blurb: "properly over the hump now" },
+      { title: "Building Something", blurb: "this has stopped being a fluke" },
+      { title: "Trusted Companion", blurb: "you two have history now" },
+      { title: "Deep Progress", blurb: "the unglamorous middle stretch — still counts" },
+      { title: "Sharpened", blurb: "clearly more capable than a while ago" },
+      { title: "Near the Top", blurb: "not many rungs left on this ladder" },
+      { title: "Elite Territory", blurb: "this is genuinely impressive by now" },
+      { title: "Almost There", blurb: "the finish line is visible" },
+      { title: "Final Stretch", blurb: "hang on, you're close" },
+      { title: "Peak Form", blurb: "about as good as it gets before the top" },
+      { title: "Max Level", blurb: "fully grown — nothing left to prove here" },
+    ];
+
+    function flavorForLevel(level) {
+      const idx = Math.max(0, Math.floor(level / 5) - 1) % MILESTONE_FLAVORS.length;
+      return MILESTONE_FLAVORS[idx];
+    }
+
+    // 30 Custom Achievements[span_3](start_span)[span_3](end_span)
+    const ACHIEVEMENTS = [
+      { id: "tier_1", label: "First Spark", desc: "Complete your very first task on the site", unlocks: "Unlocks baseline Task Tracker access" },
+      { id: "tier_2", label: "Voice of Reason", desc: "Record your first voice dictation brain dump", unlocks: "Voice capture proficiency" },
+      { id: "tier_3", label: "Cleaning Affinity", desc: "Complete 3 cleaning tasks", unlocks: "Cat companion synergy boost" },
+      { id: "tier_4", label: "Well Vitality", desc: "Complete 3 health tasks", unlocks: "Plant companion synergy boost" },
+      { id: "tier_5", label: "Master Keeper", desc: "Reach Tier 5 accomplishment milestone", unlocks: "🏨 Daycare 3rd Slot Expansion" },
+      { id: "tier_6", label: "Creative Flow", desc: "Complete 3 creative tasks", unlocks: "Cloud companion synergy boost" },
+      { id: "tier_7", label: "Admin Prodigy", desc: "Complete 3 work tasks", unlocks: "Star companion synergy boost" },
+      { id: "tier_8", label: "Social Butterfly", desc: "Complete 3 social/errand tasks", unlocks: "Blob companion synergy boost" },
+      { id: "tier_9", label: "Calendar Planner", desc: "Schedule a task on a future calendar date", unlocks: "Advanced calendar grid awareness" },
+      { id: "tier_10", label: "Phoenix Ascendant", desc: "Reach Tier 10 Award milestone", unlocks: "🦅 Golden Phoenix Companion" },
+      { id: "tier_11", label: "Note Taker", desc: "Save 3 voice or text notes in the Notes tab", unlocks: "Expanded archive capacity" },
+      { id: "tier_12", label: "Daily Sweep", desc: "Clear all pending items in your Today bucket", unlocks: "Global completion bonus boost" },
+      { id: "tier_13", label: "Task Optimizer", desc: "Reassign category tags on 5 different tasks", unlocks: "Category tuning mastery" },
+      { id: "tier_14", label: "Companion Whisperer", desc: "Pet your companions a total of 10 times", unlocks: "Extra token yield per pet" },
+      { id: "tier_15", label: "Nursery Host", desc: "Check two companions into the Daycare simultaneously", unlocks: "Passive daycare efficiency bonus" },
+      { id: "tier_16", label: "Token Hoarder", desc: "Accumulate 25 Task Tokens in your balance", unlocks: "Economic readiness" },
+      { id: "tier_17", label: "Week Organizer", desc: "Maintain at least 5 active tasks in your 'This week' bucket", unlocks: "Weekly planning synergy" },
+      { id: "tier_18", label: "Someday Visionary", desc: "Store 5 items in your 'Someday' long-term bucket", unlocks: "Long-range backlog mastery" },
+      { id: "tier_19", label: "Persistent Spirit", desc: "Complete 25 total tasks across all buckets", unlocks: "Endurance badge emblem" },
+      { id: "tier_20", label: "Cosmic Shell", desc: "Reach Tier 20 Award milestone", unlocks: "🐢 Cosmic Turtle Companion" },
+      { id: "tier_21", label: "Potion Brewer", desc: "Prepare your inventory system for active boosts", unlocks: "Consumable readiness" },
+      { id: "tier_22", label: "Aura Attuned", desc: "Max out your companion global growth stages", unlocks: "Synergy harmony unlocked" },
+      { id: "tier_23", label: "Note Archivalist", desc: "Save 10 total notes in your personal notebook", unlocks: "Advanced notebook indexing" },
+      { id: "tier_24", label: "Clockwork Routine", desc: "Complete tasks across 3 distinct category types in one day", unlocks: "Versatility badge" },
+      { id: "tier_25", label: "Daycare Master", desc: "Keep companions resting in daycare for over 60 cumulative minutes", unlocks: "Master caretaker status" },
+      { id: "tier_26", label: "Token Millionaire", desc: "Accumulate 75 Task Tokens total", unlocks: "Elite wealth badge" },
+      { id: "tier_27", label: "Legendary Feeder", desc: "Feed an XP potion to an active companion", unlocks: "Consumable mastery" },
+      { id: "tier_28", label: "Calendar Master", desc: "Populate tasks across 5 different calendar days", unlocks: "Chronological flow" },
+      { id: "tier_29", label: "Ultimate Productivity", desc: "Complete 50 total tasks on the platform", unlocks: "Apex productivity emblem" },
+      { id: "tier_30", label: "Draconic Majesty", desc: "Reach Tier 30 Award milestone", unlocks: "🐲 Celestial Dragon & Shop/Inventory" },
+    ];
+
+    // Companions[span_4](start_span)[span_4](end_span)
+    const SPECIES = [
+      { id: "cat", label: "Cat", emoji: "🐱", emojis: ["🥚", "🐱", "😺", "🐈", "🦁"], color: "#F2A65A", category: "cleaning", catLabel: "Cleaning", likes: "Cleaning tasks (+4 XP)", desc: "Washing, dishes, trash, tidy up", unlockReq: null, unlockAward: "Default Companion", canDaycare: true },
+      { id: "plant", label: "Plant", emoji: "🌱", emojis: ["🌱", "🌿", "🪴", "🌳", "🌸"], color: "#7FA88F", category: "health", catLabel: "Health & Self-care", likes: "Health tasks (+4 XP)", desc: "Exercise, meds, water, walk, doctor", unlockReq: null, unlockAward: "Default Companion", canDaycare: true },
+      { id: "cloud", label: "Cloud", emoji: "☁️", emojis: ["☁️", "⛅", "🌤️", "🌥️", "🌈"], color: "#8FB6D9", category: "creative", catLabel: "Creative", likes: "Creative tasks (+4 XP)", desc: "Writing, drawing, design, building", unlockReq: null, unlockAward: "Default Companion", canDaycare: true },
+      { id: "star", label: "Star", emoji: "✨", emojis: ["✨", "⭐", "🌟", "💫", "🌠"], color: "#F7C978", category: "work", catLabel: "Work & Admin", likes: "Work tasks (+4 XP)", desc: "Emails, reports, study, organization", unlockReq: null, unlockAward: "Default Companion", canDaycare: true },
+      { id: "blob", label: "Blob", emoji: "🟢", emojis: ["🦠", "🟢", "🟩", "❇️", "💫"], color: "#5C6B57", category: "social", catLabel: "Social & Errands", likes: "Social & Errands (+4 XP)", desc: "Shopping, calls, pick ups, friends", unlockReq: null, unlockAward: "Default Companion", canDaycare: true },
+      
+      { id: "phoenix", label: "Golden Phoenix", emoji: "🦅", emojis: ["🐣", "🦅", "🦅", "🦅", "🦅"], color: "#FFD700", category: "all", catLabel: "Master Phoenix", likes: "Scaling XP Aura (+1% to +5%)", desc: "Grants +1% to +5% XP Boost based on growth stage!", unlockReq: "tier_10", unlockAward: "Tier 10 Milestone Award", canDaycare: false },
+      { id: "turtle", label: "Cosmic Turtle", emoji: "🐢", emojis: ["🥚", "🐢", "🐢", "🐢", "🌌"], color: "#00F5D4", category: "health", catLabel: "Cosmic Guard", likes: "Health tasks (+10% Bonus XP)", desc: "Unlocks +10% Health & Self-care task bonus!", unlockReq: "tier_20", unlockAward: "Tier 20 Milestone Award", canDaycare: false },
+      { id: "dragon", label: "Celestial Dragon", emoji: "🐲", emojis: ["🥚", "🐲", "🐉", "🐲", "🔥"], color: "#FF4500", category: "work", catLabel: "Master Dragon", likes: "Work tasks (+10% Bonus XP)", desc: "Unlocks +10% Work & Admin task bonus!", unlockReq: "tier_30", unlockAward: "Tier 30 Milestone Award", canDaycare: false },
+    ];
+
+    const SHOP_ITEMS = [
+      { id: "xp_potion", name: "XP Potion 🧪", cost: 15, desc: "Grants +20 XP instantly to any chosen companion.", type: "consumable" },
+      { id: "golden_apple", name: "Golden Apple 🍎", cost: 35, desc: "Grants +50 XP instantly to any chosen companion.", type: "consumable" },
+      { id: "aura_charm", name: "Aura Charm 🔮", cost: 50, desc: "Passively adds +5% Extra XP Boost across all actions!", type: "charm" },
+    ];
+
+    const CATEGORIES = {
+      cleaning: { label: "Cleaning", affinity: "cat", emoji: "🐱" },
+      health: { label: "Health", affinity: "plant", emoji: "🌱" },
+      creative: { label: "Creative", affinity: "cloud", emoji: "☁️" },
+      work: { label: "Work", affinity: "star", emoji: "✨" },
+      social: { label: "Social/Errand", affinity: "blob", emoji: "🟢" },
+      other: { label: "General", affinity: null, emoji: "📌" },
+    };
+
+    const BASE_TASK_XP = 2;
+    const BONUS_TASK_XP = 4;
+
+    function stageIndexFor(points) {
+      const level = levelForPoints(points);
+      return Math.min(STAGE_SIZES.length - 1, Math.floor((level - 1) / LEVELS_PER_STAGE));
+    }
+
+    function useVoiceCapture() {
+      const [listening, setListening] = useState(false);
+      const [liveTranscript, setLiveTranscript] = useState("");
+      const [error, setError] = useState(null);
+
+      const recognitionRef = useRef(null);
+      const finalTranscriptRef = useRef("");
+      const shouldListenRef = useRef(false);
+
+      const buildRecognition = useCallback(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return null;
+        const rec = new SpeechRecognition();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.lang = "en-US";
+
+        rec.onresult = (event) => {
+          let interim = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscriptRef.current += transcript + " ";
+            } else {
+              interim += transcript;
+            }
+          }
+          setLiveTranscript(finalTranscriptRef.current + interim);
+        };
+
+        rec.onerror = (e) => {
+          if (e.error !== "no-speech") {
+            setError("Mic issue (" + e.error + ")");
+          }
+        };
+
+        rec.onend = () => {
+          if (shouldListenRef.current) {
+            try { rec.start(); } catch (_) {}
+          } else {
+            setListening(false);
+          }
+        };
+
+        return rec;
+      }, []);
+
+      const start = useCallback(() => {
+        setError(null);
+        const rec = buildRecognition();
+        if (!rec) {
+          setError("Voice dictation is not available in this browser.");
+          return;
+        }
+        finalTranscriptRef.current = "";
+        setLiveTranscript("");
+        recognitionRef.current = rec;
+        shouldListenRef.current = true;
+        rec.start();
+        setListening(true);
+      }, [buildRecognition]);
+
+      const stop = useCallback(() => {
+        shouldListenRef.current = false;
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+        setListening(false);
+        const dump = finalTranscriptRef.current.trim();
+        setLiveTranscript("");
+        return dump;
+      }, []);
+
+      return { listening, liveTranscript, error, start, stop };
+    }
+
+    function BrainDump() {
+      const [tab, setTab] = useState("tasks");
+      const [tasks, setTasks] = useState([]);
+      const [notes, setNotes] = useState([]);
+      const [loaded, setLoaded] = useState(false);
+      const [processing, setProcessing] = useState(false);
+      const [taskError, setTaskError] = useState(null);
+      const [nag, setNag] = useState(null);
+      const [searchQuery, setSearchQuery] = useState("");
+      const [focusMode, setFocusMode] = useState(false);
+      const [skippedIds, setSkippedIds] = useState([]);
+
+      // Calendar state
+      const [calMonth, setCalMonth] = useState(new Date());
+      const [selectedDateKey, setSelectedDateKey] = useState(formatDateKey(new Date()));
+      const [calNewTaskText, setCalNewTaskText] = useState("");
+      const [calNewCategory, setCalNewCategory] = useState("work");
+
+      // Companion state
+      const [companionData, setCompanionData] = useState({});
+      const [tasksCompleted, setTasksCompleted] = useState(0);
+      const [notesSaved, setNotesSaved] = useState(0);
+      const [pets, setPets] = useState(0);
+      const [petGate, setPetGate] = useState({ count: 0, date: "" });
+      const [activeSpecies, setActiveSpecies] = useState("cat");
+      const [lastFedInfo, setLastFedInfo] = useState(null);
+
+      // Daycare state
+      const [daycare, setDaycare] = useState({});
+      const [nowTime, setNowTime] = useState(Date.now());
+
+      // Inventory & Token state
+      const [tokens, setTokens] = useState(10);
+      const [inventory, setInventory] = useState({ xp_potion: 0, golden_apple: 0, aura_charm: 0 });
+      const [itemTargetPet, setItemTargetPet] = useState("cat");
+
+      // Level-up popup state
+      const [levelMilestones, setLevelMilestones] = useState({});
+      const [popupQueue, setPopupQueue] = useState([]);
+
+      const taskVoice = useVoiceCapture();
+      const noteVoice = useVoiceCapture();
+
+      // Load Saved State[span_5](start_span)[span_5](end_span)
+      useEffect(() => {
+        (async () => {
+          try {
+            const t = await window.storage.get(TASKS_KEY);
+            if (t && t.value) setTasks(JSON.parse(t.value));
+            else setTasks(INITIAL_TASKS);
+          } catch (_) { setTasks(INITIAL_TASKS); }
+
+          try {
+            const n = await window.storage.get(NOTES_KEY);
+            if (n && n.value) setNotes(JSON.parse(n.value));
+          } catch (_) {}
+
+          try {
+            const c = await window.storage.get(COMPANION_KEY);
+            if (c && c.value) {
+              const parsed = JSON.parse(c.value);
+              if (parsed.data) {
+                setCompanionData(parsed.data);
+                setActiveSpecies(parsed.active || "cat");
+              }
+            }
+          } catch (_) {}
+
+          try {
+            const st = await window.storage.get(STATS_KEY);
+            if (st && st.value) {
+              const parsed = JSON.parse(st.value);
+              setTasksCompleted(parsed.tasksCompleted || 0);
+              setNotesSaved(parsed.notesSaved || 0);
+              setPets(parsed.pets || 0);
+              setPetGate(parsed.petGate || { count: 0, date: "" });
+            }
+          } catch (_) {}
+
+          try {
+            const dc = await window.storage.get(DAYCARE_KEY);
+            if (dc && dc.value) setDaycare(JSON.parse(dc.value));
+          } catch (_) {}
+
+          try {
+            const inv = await window.storage.get(INVENTORY_KEY);
+            if (inv && inv.value) setInventory(JSON.parse(inv.value));
+          } catch (_) {}
+
+          try {
+            const tk = await window.storage.get(TOKENS_KEY);
+            if (tk && tk.value) setTokens(JSON.parse(tk.value));
+          } catch (_) {}
+
+          try {
+            const lm = await window.storage.get(LEVEL_MILESTONES_KEY);
+            if (lm && lm.value) setLevelMilestones(JSON.parse(lm.value));
+          } catch (_) {}
+
+          setLoaded(true);
+        })();
+      }, []);
+
+      const isAchievementUnlocked = (achId) => {
+        switch (achId) {
+          case "tier_1": return tasksCompleted >= 1 || tasks.some(t => t.done);
+          case "tier_2": return notesSaved >= 1 || notes.length > 0;
+          case "tier_3": return tasks.filter(t => t.category === "cleaning" && t.done).length >= 3;
+          case "tier_4": return tasks.filter(t => t.category === "health" && t.done).length >= 3;
+          case "tier_5": return tasksCompleted >= 5;
+          case "tier_6": return tasks.filter(t => t.category === "creative" && t.done).length >= 3;
+          case "tier_7": return tasks.filter(t => t.category === "work" && t.done).length >= 3;
+          case "tier_8": return tasks.filter(t => t.category === "social" && t.done).length >= 3;
+          case "tier_9": return tasks.some(t => t.dateKey !== formatDateKey(new Date()));
+          case "tier_10": return tasksCompleted >= 10;
+          case "tier_11": return notesSaved >= 3;
+          case "tier_12": return tasks.length > 0 && tasks.filter(t => t.bucket === "today" && !t.done).length === 0;
+          case "tier_13": return tasks.length >= 5;
+          case "tier_14": return pets >= 10;
+          case "tier_15": return Object.keys(daycare).length >= 2;
+          case "tier_16": return tokens >= 25;
+          case "tier_17": return tasks.filter(t => t.bucket === "week").length >= 5;
+          case "tier_18": return tasks.filter(t => t.bucket === "someday").length >= 5;
+          case "tier_19": return tasksCompleted >= 25;
+          case "tier_20": return tasksCompleted >= 30;
+          case "tier_21": return Object.values(inventory).some(v => v > 0);
+          case "tier_22": return Object.values(companionData).some(pts => pts >= 70);
+          case "tier_23": return notesSaved >= 10;
+          case "tier_24": return ["cleaning", "health", "work"].every(cat => tasks.some(t => t.category === cat && t.done));
+          case "tier_25": return Object.keys(daycare).length > 0;
+          case "tier_26": return tokens >= 75;
+          case "tier_27": return inventory.xp_potion === 0;
+          case "tier_28": return new Set(tasks.map(t => t.dateKey)).size >= 5;
+          case "tier_29": return tasksCompleted >= 50;
+          case "tier_30": return tasksCompleted >= 75;
+          default: return false;
+        }
+      };
+
+      const earnedAwardsCount = ACHIEVEMENTS.filter(a => isAchievementUnlocked(a.id)).length;
+      const isSpeciesUnlocked = (sp) => !sp.unlockReq || isAchievementUnlocked(sp.unlockReq);
+      const maxDaycareSlots = isAchievementUnlocked("tier_5") ? 3 : 2;
+      const inventoryUnlocked = isAchievementUnlocked("tier_30");
+
+      const phoenixUnlocked = isSpeciesUnlocked(SPECIES.find((s) => s.id === "phoenix"));
+      const phoenixPoints = companionData["phoenix"] || 0;
+      const phoenixStage = phoenixUnlocked ? stageIndexFor(phoenixPoints) : -1;
+      const phoenixBoostPercent = phoenixUnlocked ? phoenixStage + 1 : 0;
+      const charmBonus = (inventory.aura_charm || 0) * 5;
+
+      const applyXpBoost = (amount) => {
+        const totalMultiplier = 1 + (phoenixBoostPercent + charmBonus) / 100;
+        return amount * totalMultiplier;
+      };
+
+      // Passive Daycare timer
+      useEffect(() => {
+        const timer = setInterval(() => {
+          const current = Date.now();
+          setNowTime(current);
+          setDaycare((prevDaycare) => {
+            if (Object.keys(prevDaycare).length === 0) return prevDaycare;
+            const updatedDaycare = { ...prevDaycare };
+            setCompanionData((prevData) => {
+              const nextData = { ...prevData };
+              Object.entries(updatedDaycare).forEach(([spId, startTime]) => {
+                const minutesElapsed = Math.floor((current - startTime) / 60000);
+                if (minutesElapsed > 0) {
+                  const boostedEarned = applyXpBoost(minutesElapsed);
+                  const oldPoints = nextData[spId] || 0;
+                  let newPoints = oldPoints + boostedEarned;
+                  if (newPoints > MAX_POINTS) newPoints = MAX_POINTS;
+                  registerLevelUps(spId, oldPoints, newPoints, true);
+                  nextData[spId] = newPoints;
+                  updatedDaycare[spId] = startTime + minutesElapsed * 60000;
+                }
+              });
+              return nextData;
+            });
+            return updatedDaycare;
+          });
+        }, 10000);
+        return () => clearInterval(timer);
+      }, [phoenixUnlocked, phoenixBoostPercent, charmBonus]);
+
+      useEffect(() => { if (loaded) window.storage.set(TASKS_KEY, JSON.stringify(tasks)); }, [tasks, loaded]);
+      useEffect(() => { if (loaded) window.storage.set(NOTES_KEY, JSON.stringify(notes)); }, [notes, loaded]);
+      useEffect(() => { if (loaded) window.storage.set(STATS_KEY, JSON.stringify({ tasksCompleted, notesSaved, pets, petGate })); }, [tasksCompleted, notesSaved, pets, petGate, loaded]);
+      useEffect(() => { if (loaded) window.storage.set(COMPANION_KEY, JSON.stringify({ data: companionData, active: activeSpecies })); }, [companionData, activeSpecies, loaded]);
+      useEffect(() => { if (loaded) window.storage.set(DAYCARE_KEY, JSON.stringify(daycare)); }, [daycare, loaded]);
+      useEffect(() => { if (loaded) window.storage.set(INVENTORY_KEY, JSON.stringify(inventory)); }, [inventory, loaded]);
+      useEffect(() => { if (loaded) window.storage.set(TOKENS_KEY, JSON.stringify(tokens)); }, [tokens, loaded]);
+      useEffect(() => { if (loaded) window.storage.set(LEVEL_MILESTONES_KEY, JSON.stringify(levelMilestones)); }, [levelMilestones, loaded]);
+
+      const dismissPopup = () => setPopupQueue((q) => q.slice(1));
+
+      // Checks whether newPoints crossed any level-milestone (every 10 levels, plus max level 100)
+      // relative to oldPoints, and queues a popup (and an alert if maxed while in Daycare).
+      const registerLevelUps = (speciesId, oldPoints, newPoints, wasInDaycare) => {
+        const oldLevel = levelForPoints(oldPoints);
+        const newLevel = levelForPoints(newPoints);
+        if (newLevel <= oldLevel) return;
+
+        const crossed = [];
+        for (let m = 5; m <= LEVEL_CAP; m += 5) {
+          if (oldLevel < m && newLevel >= m) crossed.push(m);
+        }
+        if (crossed.length === 0) return;
+
+        setLevelMilestones((prev) => {
+          const already = prev[speciesId] || [];
+          const toShow = crossed.filter((m) => !already.includes(m));
+          if (toShow.length === 0) return prev;
+
+          const sp = SPECIES.find((s) => s.id === speciesId);
+          const petLabel = sp ? `${sp.emoji} ${sp.label}` : "Your companion";
+
+          toShow.forEach((m) => {
+            if (m === LEVEL_CAP && wasInDaycare) {
+              alert(`🏨 ${petLabel} reached MAX LEVEL ${LEVEL_CAP} while resting in Daycare!`);
+            }
+          });
+
+          setPopupQueue((q) => [
+            ...q,
+            ...toShow.map((m) => ({ speciesId, level: m, isMax: m === LEVEL_CAP, wasInDaycare, flavor: flavorForLevel(m) })),
+          ]);
+
+          return { ...prev, [speciesId]: [...already, ...toShow] };
+        });
+      };
+
+      // Adds XP to a species, capping at the Level-100 max, and fires milestone popups.
+      const addXpToSpecies = (speciesId, amount, wasInDaycare = false) => {
+        setCompanionData((prev) => {
+          const oldPoints = prev[speciesId] || 0;
+          let newPoints = oldPoints + amount;
+          if (newPoints > MAX_POINTS) newPoints = MAX_POINTS;
+          registerLevelUps(speciesId, oldPoints, newPoints, wasInDaycare);
+          return { ...prev, [speciesId]: newPoints };
+        });
+      };
+
+      // --- NEW FEATURE: Markdown Export Function ---
+      const exportToMarkdown = () => {
+        let md = `# Brain Dump & Calendar Export\n*Exported on: ${new Date().toLocaleString()}*\n\n`;
+        
+        md += `## Tasks\n`;
+        BUCKETS.forEach(b => {
+          const bucketTasks = tasks.filter(t => t.bucket === b.key);
+          if (bucketTasks.length > 0) {
+            md += `### ${b.label}\n`;
+            bucketTasks.forEach(t => {
+              const status = t.done ? "[x]" : "[ ]";
+              md += `- ${status} ${t.text} *(Category: ${t.category}, Date: ${t.dateKey})*\n`;
+            });
+            md += `\n`;
+          }
+        });
+
+        md += `## Notes Archive\n`;
+        if (notes.length === 0) {
+          md += `No notes saved yet.\n`;
+        } else {
+          notes.forEach(n => {
+            md += `- **${new Date(n.createdAt).toLocaleString()}**: ${n.text}\n`;
+          });
+        }
+
+        const blob = new Blob([md], { type: "text/markdown;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `brain-dump-export-${formatDateKey(new Date())}.md`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      // --- NEW FEATURE: Export Individual Note Text File ---
+      const exportSingleNote = (note) => {
+        const blob = new Blob([note.text], { type: "text/plain;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `note-${note.id}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      const toggleDaycare = (speciesId) => {
+        const sp = SPECIES.find(s => s.id === speciesId);
+        if (sp && !sp.canDaycare) return;
+        setDaycare((prev) => {
+          const next = { ...prev };
+          if (next[speciesId]) {
+            delete next[speciesId];
+          } else {
+            if (Object.keys(next).length >= maxDaycareSlots) return prev;
+            next[speciesId] = Date.now();
+          }
+          return next;
+        });
+      };
+
+      const petCompanion = (speciesId) => {
+        const today = new Date().toDateString();
+        const current = petGate.date === today ? petGate.count : 0;
+        if (current >= DAILY_PET_LIMIT) return;
+        const addedXP = applyXpBoost(1);
+        setPetGate({ count: current + 1, date: today });
+        addXpToSpecies(speciesId, addedXP, !!daycare[speciesId]);
+        setPets((c) => c + 1);
+        setTokens((t) => t + 2);
+      };
+
+      const buyShopItem = (item) => {
+        if (tokens < item.cost) return;
+        setTokens((t) => t - item.cost);
+        setInventory((prev) => ({ ...prev, [item.id]: (prev[item.id] || 0) + 1 }));
+      };
+
+      const useInventoryItem = (itemId) => {
+        if ((inventory[itemId] || 0) <= 0) return;
+        let xpToAdd = 0;
+        if (itemId === "xp_potion") xpToAdd = 20;
+        if (itemId === "golden_apple") xpToAdd = 50;
+        if (xpToAdd > 0) {
+          const boosted = applyXpBoost(xpToAdd);
+          addXpToSpecies(itemTargetPet, boosted, !!daycare[itemTargetPet]);
+          const targetSp = SPECIES.find(s => s.id === itemTargetPet);
+          setLastFedInfo({ name: targetSp ? targetSp.label : "Pet", emoji: "🧪", amount: Number(boosted.toFixed(1)) });
+          setTimeout(() => setLastFedInfo(null), 3500);
+        }
+        setInventory((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+      };
+
+      useEffect(() => {
+        const urgent = tasks.filter((t) => t.bucket === "today" && !t.done);
+        if (urgent.length === 0) {
+          setNag(null);
+          return;
+        }
+        let i = 0;
+        setNag(urgent[0]);
+        const id = setInterval(() => {
+          i = (i + 1) % urgent.length;
+          setNag(urgent[i]);
+        }, 6000);
+        return () => clearInterval(id);
+      }, [tasks]);
+
+      const handleStopTaskDump = async () => {
+        const dump = taskVoice.stop();
+        if (!dump) return;
+        processTranscript(dump);
+      };
+
+      const handleStopNoteDump = () => {
+        const dump = noteVoice.stop();
+        if (!dump) return;
+        setNotes((prev) => [
+          { id: Math.random().toString(), text: dump, createdAt: Date.now() },
+          ...prev,
+        ]);
+        setNotesSaved((c) => c + 1);
+        setTokens((t) => t + 3);
+      };
+
+      const processTranscript = (dump) => {
+        setProcessing(true);
+        try {
+          const rawItems = dump
+            .split(/(?:\.|\n|\b(?:and then|also|next|plus)\b)+/i)
+            .map((s) => s.trim())
+            .filter((s) => s.length > 2);
+
+          const todayKey = formatDateKey(new Date());
+          const newTasks = rawItems.map((text) => {
+            const lower = text.toLowerCase();
+            let bucket = "today";
+            if (lower.includes("someday") || lower.includes("eventually") || lower.includes("later")) {
+              bucket = "someday";
+            } else if (lower.includes("this week") || lower.includes("weekend") || lower.includes("next few days")) {
+              bucket = "week";
+            }
+
+            let category = "other";
+            if (/clean|wash|tidy|laundry|dishes|trash|vacuum/.test(lower)) category = "cleaning";
+            else if (/doctor|exercise|workout|meds|health|walk|water/.test(lower)) category = "health";
+            else if (/write|draw|design|idea|create|code|build/.test(lower)) category = "creative";
+            else if (/email|report|meeting|work|file|study/i.test(lower)) category = "work";
+            else if (/call|buy|grocery|store|meet|pick up|errand/.test(lower)) category = "social";
+
+            return {
+              id: Math.random().toString(),
+              text: text.charAt(0).toUpperCase() + text.slice(1),
+              bucket,
+              category,
+              dateKey: todayKey,
+              done: false,
+              createdAt: Date.now(),
+            };
+          });
+
+          if (newTasks.length > 0) {
+            setTasks((prev) => [...newTasks, ...prev]);
+          }
+        } catch (e) {
+          setTaskError("Failed to parse transcript locally.");
+        } finally {
+          setProcessing(false);
+        }
+      };
+
+      const toggleDone = (id) => {
+        const target = tasks.find((t) => t.id === id);
+        if (target && !target.done) {
+          const cat = CATEGORIES[target.category] || CATEGORIES.other;
+          const beneficiary = cat.affinity || activeSpecies;
+          const rawAmount = cat.affinity ? BONUS_TASK_XP : BASE_TASK_XP;
+          const amount = applyXpBoost(rawAmount);
+
+          addXpToSpecies(beneficiary, amount, !!daycare[beneficiary]);
+          setTasksCompleted((c) => c + 1);
+          setTokens((t) => t + 5);
+
+          const fedCompanion = SPECIES.find(s => s.id === beneficiary);
+          if (fedCompanion) {
+            setLastFedInfo({ name: fedCompanion.label, emoji: fedCompanion.emoji, amount: Number(amount.toFixed(1)) });
+            setTimeout(() => setLastFedInfo(null), 3500);
+          }
+
+          const remainingPending = tasks.filter((t) => t.id !== id && !t.done).length;
+          if (remainingPending === 0 && tasks.length > 0) {
+            const clearBonus = applyXpBoost(2);
+            setCompanionData((prev) => {
+              const updated = { ...prev };
+              SPECIES.forEach((s) => {
+                if (isSpeciesUnlocked(s)) {
+                  updated[s.id] = (updated[s.id] || 0) + clearBonus;
+                }
+              });
+              return updated;
+            });
+            setTimeout(() => {
+              setLastFedInfo({ name: "All Pets (All Tasks Cleared Bonus)", emoji: "🎉", amount: Number((clearBonus * 5).toFixed(1)) });
+              setTimeout(() => setLastFedInfo(null), 4000);
+            }, 3600);
+          }
+        }
+        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+      };
+
+      const changeTaskCategory = (id, newCat) => {
+        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, category: newCat } : t)));
+      };
+
+      const deleteTask = (id) => setTasks((prev) => prev.filter((t) => t.id !== id));
+      const deleteNote = (id) => setNotes((prev) => prev.filter((n) => n.id !== id));
+
+      const addCalendarTask = () => {
+        if (!calNewTaskText.trim()) return;
+        const newTask = {
+          id: Math.random().toString(),
+          text: calNewTaskText.trim(),
+          bucket: "today",
+          category: calNewCategory,
+          dateKey: selectedDateKey,
+          done: false,
+          createdAt: Date.now(),
+        };
+        setTasks((prev) => [newTask, ...prev]);
+        setCalNewTaskText("");
+      };
+
+      const activeCount = tasks.filter((t) => !t.done).length;
+      const allCompleted = tasks.length > 0 && activeCount === 0;
+
+      // Focus Mode: one task at a time, prioritized today > week > someday.
+      const pendingOrdered = ["today", "week", "someday"].flatMap((bk) => tasks.filter((t) => t.bucket === bk && !t.done));
+      const focusList = pendingOrdered.filter((t) => !skippedIds.includes(t.id));
+      const focusTask = focusList[0] || pendingOrdered[0] || null;
+      const skipFocusTask = () => {
+        if (!focusTask) return;
+        setSkippedIds((prev) => (prev.length + 1 >= pendingOrdered.length ? [] : [...prev, focusTask.id]));
+      };
+      const fmtDate = (ts) => new Date(ts).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+      const year = calMonth.getFullYear();
+      const month = calMonth.getMonth();
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const monthName = calMonth.toLocaleString("default", { month: "long" });
+
+      const prevMonth = () => setCalMonth(new Date(year, month - 1, 1));
+      const nextMonth = () => setCalMonth(new Date(year, month + 1, 1));
+
+      // Filtered data based on Search Query
+      const filteredTasks = tasks.filter(t => t.text.toLowerCase().includes(searchQuery.toLowerCase()));
+      const filteredNotes = notes.filter(n => n.text.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      return (
+        <div style={{ minHeight: "100vh", background: "#14161F", color: "#E8E6E1", fontFamily: "'Inter', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", padding: "28px 16px 80px" }}>
+          <style>{`
+            @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.05); opacity: 0.9; } }
+            @keyframes listenPulse { 0% { box-shadow: 0 0 0 0 rgba(229,112,126,0.5); } 70% { box-shadow: 0 0 0 20px rgba(229,112,126,0); } 100% { box-shadow: 0 0 0 0 rgba(229,112,126,0); } }
+            @keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+            .bd-task { animation: dropIn 0.25s ease-out; }
+            .bd-mic-idle { animation: breathe 3.4s ease-in-out infinite; }
+            .bd-mic-listening { animation: listenPulse 1.6s ease-out infinite; }
+            button, select, input { font-family: inherit; }
+          `}</style>
+
+          <div style={{ width: "100%", maxWidth: 580, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            {tab === "tasks" ? (
+              <button
+                onClick={() => {
+                  setFocusMode((f) => {
+                    const next = !f;
+                    if (next && !["tasks", "calendar", "notes"].includes(tab)) setTab("tasks");
+                    return next;
+                  });
+                }}
+                title={focusMode ? "Show the full list again" : "Show just one task at a time"}
+                style={{
+                  background: focusMode ? "rgba(0,245,212,0.15)" : "rgba(255,255,255,0.06)",
+                  border: `1px solid ${focusMode ? "rgba(0,245,212,0.4)" : "rgba(255,255,255,0.1)"}`,
+                  color: focusMode ? "#00F5D4" : "#8FB6D9",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                  cursor: "pointer",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                🎯 Focus
+              </button>
+            ) : (
+              <div style={{ width: 36 }}></div>
+            )}
+            <div style={{ textAlign: "center" }}>
+              <h1 style={{ fontSize: 26, margin: 0, fontWeight: 700 }}>brain dump</h1>
+              <p style={{ color: "#8B8D99", fontSize: 13, margin: "4px 0 0" }}>
+                {allCompleted ? "🎉 Everything completed!" : activeCount === 0 ? "all clear" : `${activeCount} tasks pending`}
+              </p>
+            </div>
+            {/* Export Markdown Button */}
+            <button onClick={exportToMarkdown} title="Export to Markdown (.md)" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#8FB6D9", borderRadius: 8, padding: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Download size={18} />
+            </button>
+          </div>
+
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 4, flexWrap: "wrap" }}>
+            {phoenixUnlocked && (
+              <span style={{ fontSize: 11, background: "linear-gradient(135deg, rgba(255,215,0,0.2), rgba(242,166,90,0.2))", border: "1px solid rgba(255,215,0,0.4)", color: "#FFD700", padding: "2px 8px", borderRadius: 12, fontWeight: 700 }}>
+                🔥 Phoenix Boost: +{phoenixBoostPercent + charmBonus}% Global XP!
+              </span>
+            )}
+            <span style={{ fontSize: 11, background: "rgba(242,166,90,0.15)", border: "1px solid rgba(242,166,90,0.3)", color: "#F2A65A", padding: "2px 8px", borderRadius: 12, fontWeight: 700 }}>
+              🪙 {tokens} Task Tokens
+            </span>
+          </div>
+
+          {/* XP Feed Alert */}
+          {lastFedInfo && (
+            <div style={{ position: "fixed", top: 16, zIndex: 100, background: "linear-gradient(135deg, #F2A65A, #E5707E)", color: "#14161F", padding: "8px 16px", borderRadius: 20, fontWeight: 700, fontSize: 13, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+              {lastFedInfo.emoji} {lastFedInfo.name} gained +{lastFedInfo.amount} XP!
+            </div>
+          )}
+
+          {/* Level-Up / Max Level Popup */}
+          {popupQueue.length > 0 && (() => {
+            const popup = popupQueue[0];
+            const sp = SPECIES.find((s) => s.id === popup.speciesId);
+            const pts = companionData[popup.speciesId] || 0;
+            const emoji = sp ? sp.emojis[stageIndexFor(pts)] : "🐾";
+            const label = sp ? sp.label : "Your companion";
+            return (
+              <div onClick={dismissPopup} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+                <div onClick={(e) => e.stopPropagation()} style={{ background: "#1E2130", borderRadius: 18, padding: "28px 32px", maxWidth: 320, textAlign: "center", border: `1px solid ${popup.isMax ? "rgba(255,215,0,0.4)" : "rgba(0,245,212,0.3)"}`, boxShadow: "0 12px 40px rgba(0,0,0,0.5)" }}>
+                  <div style={{ fontSize: 52, lineHeight: 1 }}>{emoji}</div>
+                  <h2 style={{ margin: "10px 0 4px", fontSize: 20, color: popup.isMax ? "#FFD700" : "#00F5D4" }}>
+                    {popup.isMax ? "🏆 " : "🎉 "}{popup.flavor ? popup.flavor.title : "Level Up!"}
+                  </h2>
+                  <p style={{ margin: "0 0 4px", fontSize: 13, color: "#B7B9C4" }}>
+                    <strong>{label}</strong> reached <strong>Level {popup.level}</strong>{popup.isMax ? " — the maximum!" : "!"}
+                  </p>
+                  {popup.flavor && (
+                    <p style={{ margin: "0 0 12px", fontSize: 12, color: "#8B8D99", fontStyle: "italic" }}>
+                      {popup.flavor.blurb}
+                    </p>
+                  )}
+                  {popup.isMax && popup.wasInDaycare && (
+                    <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, color: "#F2A65A" }}>
+                      🏨 Maxed out while resting in Daycare!
+                    </p>
+                  )}
+                  <button onClick={dismissPopup} style={{ background: popup.isMax ? "#FFD700" : "#00F5D4", border: "none", color: "#14161F", padding: "8px 20px", borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                    Nice!
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* --- NEW FEATURE: Global Search Bar --- */}
+          <div style={{ marginTop: 16, width: "100%", maxWidth: 420, position: "relative" }}>
+            <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#6E7080", display: "flex" }}>
+              <SearchIcon size={16} />
+            </span>
+            <input 
+              type="text" 
+              placeholder="Search tasks or notes..." 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 12px 8px 36px", color: "#E8E6E1", fontSize: 13, outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+
+          {/* Navigation Tabs */}
+          <div style={{ display: "flex", gap: 4, marginTop: 14, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: 4, flexWrap: "wrap", justifyContent: "center" }}>
+            {[
+              { key: "tasks", label: "Tasks", icon: ListTodo, color: "#F2A65A" },
+              { key: "calendar", label: "Calendar", icon: CalendarIcon, color: "#8FB6D9" },
+              { key: "notes", label: "Notes", icon: NotebookPen, color: "#7FA88F" },
+              { key: "companion", label: "Companions", icon: Heart, color: "#F7C978" },
+              { key: "daycare", label: `Daycare (${Object.keys(daycare).length}/${maxDaycareSlots})`, icon: Home, color: "#E5707E" },
+              { key: "inventory", label: "Inventory & Shop", icon: Backpack, color: "#00F5D4" },
+              { key: "achievements", label: "Awards (Tiers)", icon: Trophy, color: "#D9A8E5" },
+            ].filter((t) => !focusMode || ["tasks", "calendar", "notes"].includes(t.key)).map((t) => {
+              const Icon = t.icon;
+              const active = tab === t.key;
+              return (
+                <button key={t.key} onClick={() => setTab(t.key)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 11px", borderRadius: 8, border: "none", cursor: "pointer", background: active ? `${t.color}2E` : "transparent", color: active ? t.color : "#8B8D99", fontSize: 12, fontWeight: 600 }}>
+                  <Icon size={14} /> {t.label}
+                </button>
+              );
+            })}
+          </div>
+          {focusMode && (
+            <p style={{ fontSize: 11, color: "#5A5C68", marginTop: 6, textAlign: "center" }}>
+              focus mode is hiding companions, daycare, inventory & awards for now
+            </p>
+          )}
+
+          {/* TASKS TAB */}
+          {tab === "tasks" && (
+            <>
+              {allCompleted && !searchQuery && (
+                <div style={{ marginTop: 16, padding: "12px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(127,168,143,0.2), rgba(247,201,120,0.2))", border: "1px solid rgba(127,168,143,0.4)", display: "flex", alignItems: "center", gap: 10, maxWidth: 420, width: "100%" }}>
+                  <PartyPopper size={22} color="#7FA88F" />
+                  <span style={{ fontSize: 13, color: "#E8E6E1", fontWeight: 600 }}>
+                    You completed all your tasks! Enjoy your day or record a new task below.
+                  </span>
+                </div>
+              )}
+
+              {nag && !allCompleted && !searchQuery && (
+                <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 10, background: "rgba(229,112,126,0.12)", border: "1px solid rgba(229,112,126,0.35)", display: "flex", alignItems: "center", gap: 8, maxWidth: 420, width: "100%" }}>
+                  <AlertCircle size={16} color="#E5707E" />
+                  <span style={{ fontSize: 13, color: "#F0C7CC" }}>Pending today: <strong>{nag.text}</strong></span>
+                </div>
+              )}
+
+              <div style={{ marginTop: 28, marginBottom: 16 }}>
+                <button onClick={taskVoice.listening ? handleStopTaskDump : taskVoice.start} disabled={processing} className={taskVoice.listening ? "bd-mic-listening" : "bd-mic-idle"} style={{ width: 88, height: 88, borderRadius: "50%", border: "none", cursor: "pointer", background: "linear-gradient(135deg, #F2A65A, #E5707E)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {processing ? <Sparkles size={30} color="#14161F" /> : taskVoice.listening ? <Square size={26} color="#14161F" fill="#14161F" /> : <Mic size={30} color="#14161F" />}
+                </button>
+              </div>
+
+              <p style={{ fontSize: 13, color: "#8B8D99", textAlign: "center", margin: 0 }}>
+                {processing ? "organizing tasks..." : taskVoice.listening ? "listening..." : "tap mic to brain dump tasks"}
+              </p>
+
+              {taskVoice.liveTranscript && <div style={{ marginTop: 12, maxWidth: 420, width: "100%", fontSize: 13, color: "#B7B9C4", fontStyle: "italic", padding: "10px 14px", borderLeft: "2px solid #F2A65A", background: "rgba(255,255,255,0.03)", borderRadius: 6 }}>{taskVoice.liveTranscript}</div>}
+
+              {focusMode ? (
+                <div style={{ marginTop: 32, width: "100%", maxWidth: 420 }}>
+                  {focusTask ? (
+                    <div style={{ padding: "28px 24px", borderRadius: 18, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(0,245,212,0.25)", textAlign: "center" }}>
+                      <span style={{ fontSize: 11, color: (CATEGORIES[focusTask.category] || CATEGORIES.other).affinity ? SPECIES.find(s => s.id === (CATEGORIES[focusTask.category] || CATEGORIES.other).affinity)?.color : "#8B8D99", fontWeight: 700 }}>
+                        {(CATEGORIES[focusTask.category] || CATEGORIES.other).emoji} {(CATEGORIES[focusTask.category] || CATEGORIES.other).label}
+                      </span>
+                      <p style={{ fontSize: 19, fontWeight: 700, margin: "12px 0 20px", lineHeight: 1.4 }}>{focusTask.text}</p>
+                      <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                        <button onClick={() => toggleDone(focusTask.id)} style={{ background: "#00F5D4", border: "none", color: "#14161F", padding: "10px 20px", borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                          ✅ Done
+                        </button>
+                        <button onClick={skipFocusTask} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: "#B7B9C4", padding: "10px 20px", borderRadius: 12, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+                          ⏭ Skip for now
+                        </button>
+                      </div>
+                      {pendingOrdered.length > 1 && (
+                        <p style={{ fontSize: 11, color: "#5A5C68", marginTop: 16, marginBottom: 0 }}>
+                          {pendingOrdered.length - 1} more waiting — just not right now
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ padding: "28px 24px", borderRadius: 18, background: "rgba(127,168,143,0.08)", border: "1px solid rgba(127,168,143,0.3)", textAlign: "center" }}>
+                      <p style={{ margin: 0, fontSize: 14, color: "#E8E6E1" }}>🎉 Nothing pending — you're caught up</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+              <div style={{ marginTop: 32, width: "100%", maxWidth: 580, display: "flex", flexDirection: "column", gap: 24 }}>
+                {BUCKETS.map((b) => {
+                  const items = filteredTasks.filter((t) => t.bucket === b.key);
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={b.key}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: b.accent }} />
+                        <span style={{ fontWeight: 600, fontSize: 14, color: "#CFD1DA" }}>{b.label} ({items.filter(i=>!i.done).length} pending)</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {items.map((t) => {
+                          const catInfo = CATEGORIES[t.category] || CATEGORIES.other;
+                          return (
+                            <div key={t.id} className="bd-task" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.04)", opacity: t.done ? 0.45 : 1 }}>
+                              <button onClick={() => toggleDone(t.id)} style={{ width: 22, height: 22, borderRadius: 6, border: `1.5px solid ${b.accent}`, background: t.done ? b.accent : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                                {t.done && <Check size={14} color="#14161F" />}
+                              </button>
+                              
+                              <span style={{ flex: 1, fontSize: 14, textDecoration: t.done ? "line-through" : "none" }}>{t.text}</span>
+
+                              <select value={t.category || "other"} onChange={(e) => changeTaskCategory(t.id, e.target.value)} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: "#B7B9C4", fontSize: 11, borderRadius: 6, padding: "3px 6px", cursor: "pointer" }}>
+                                {Object.entries(CATEGORIES).map(([ckey, cval]) => (
+                                  <option key={ckey} value={ckey} style={{ background: "#14161F", color: "#fff" }}>
+                                    {cval.emoji} {cval.label}
+                                  </option>
+                                ))}
+                              </select>
+
+                              <button onClick={() => deleteTask(t.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}>
+                                <Trash2 size={14} color="#6E7080" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              )}
+            </>
+          )}
+
+          {/* CALENDAR TAB */}
+          {tab === "calendar" && (
+            <div style={{ width: "100%", maxWidth: 540, marginTop: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <button onClick={prevMonth} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>
+                  <ChevronLeft size={18} />
+                </button>
+                <h2 style={{ fontSize: 16, margin: 0, fontWeight: 600 }}>{monthName} {year}</h2>
+                <button onClick={nextMonth} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, textAlign: "center", fontSize: 11, color: "#6E7080", fontWeight: 600, marginBottom: 8 }}>
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d}>{d}</div>)}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+                {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                  <div key={`empty-${i}`} style={{ height: 42 }} />
+                ))}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const dayNum = i + 1;
+                  const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+                  const isSelected = selectedDateKey === dateStr;
+                  const dayTasks = tasks.filter((t) => t.dateKey === dateStr);
+                  const hasTasks = dayTasks.length > 0;
+                  const isToday = formatDateKey(new Date()) === dateStr;
+
+                  return (
+                    <button key={dateStr} onClick={() => setSelectedDateKey(dateStr)} style={{ height: 44, borderRadius: 8, border: isSelected ? "1.5px solid #8FB6D9" : "none", background: isSelected ? "rgba(143,182,217,0.15)" : isToday ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.02)", color: isToday ? "#8FB6D9" : "#E8E6E1", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                      <span style={{ fontSize: 12, fontWeight: isToday ? 700 : 400 }}>{dayNum}</span>
+                      {hasTasks && (
+                        <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
+                          {dayTasks.slice(0, 3).map((dt, idx) => (
+                            <span key={idx} style={{ width: 4, height: 4, borderRadius: "50%", background: dt.done ? "#6E7080" : "#F2A65A" }} />
+                          ))}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: 24, padding: "16px", background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <h3 style={{ fontSize: 14, margin: "0 0 12px", color: "#8FB6D9" }}>
+                  Tasks for {selectedDateKey}
+                </h3>
+
+                <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                  <input type="text" placeholder="Add a task for this date..." value={calNewTaskText} onChange={(e) => setCalNewTaskText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addCalendarTask()} style={{ flex: 1, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "8px 12px", color: "#fff", fontSize: 13 }} />
+                  <select value={calNewCategory} onChange={(e) => setCalNewCategory(e.target.value)} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: "#fff", borderRadius: 8, padding: "0 8px", fontSize: 12 }}>
+                    {Object.entries(CATEGORIES).map(([ckey, cval]) => (
+                      <option key={ckey} value={ckey} style={{ background: "#14161F" }}>{cval.emoji} {cval.label}</option>
+                    ))}
+                  </select>
+                  <button onClick={addCalendarTask} style={{ background: "#8FB6D9", border: "none", color: "#14161F", borderRadius: 8, padding: "0 12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Plus size={16} />
+                  </button>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {tasks.filter((t) => t.dateKey === selectedDateKey).length === 0 ? (
+                    <p style={{ fontSize: 12, color: "#6E7080", margin: "4px 0" }}>No tasks scheduled for this day.</p>
+                  ) : (
+                    tasks.filter((t) => t.dateKey === selectedDateKey).map((t) => {
+                      const catInfo = CATEGORIES[t.category] || CATEGORIES.other;
+                      return (
+                        <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8, background: "rgba(255,255,255,0.04)" }}>
+                          <button onClick={() => toggleDone(t.id)} style={{ width: 18, height: 18, borderRadius: 5, border: "1.5px solid #8FB6D9", background: t.done ? "#8FB6D9" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {t.done && <Check size={12} color="#14161F" />}
+                          </button>
+                          <span style={{ flex: 1, fontSize: 13, textDecoration: t.done ? "line-through" : "none", color: t.done ? "#6E7080" : "#E8E6E1" }}>{t.text}</span>
+                          <span style={{ fontSize: 11, color: "#8FB6D9" }}>{catInfo.emoji} {catInfo.label}</span>
+                          <button onClick={() => deleteTask(t.id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
+                            <Trash2 size={13} color="#6E7080" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* NOTES TAB */}
+          {tab === "notes" && (
+            <>
+              <div style={{ marginTop: 28, marginBottom: 16 }}>
+                <button onClick={noteVoice.listening ? handleStopNoteDump : noteVoice.start} className={noteVoice.listening ? "bd-mic-listening" : "bd-mic-idle"} style={{ width: 88, height: 88, borderRadius: "50%", border: "none", cursor: "pointer", background: "linear-gradient(135deg, #7FA88F, #4F7A66)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {noteVoice.listening ? <Square size={26} color="#0E1712" fill="#0E1712" /> : <Mic size={30} color="#0E1712" />}
+                </button>
+              </div>
+
+              {noteVoice.liveTranscript && <div style={{ marginTop: 12, maxWidth: 420, width: "100%", fontSize: 13, color: "#B7B9C4", fontStyle: "italic", padding: "10px 14px", borderLeft: "2px solid #7FA88F", background: "rgba(255,255,255,0.03)", borderRadius: 6 }}>{noteVoice.liveTranscript}</div>}
+
+              <div style={{ marginTop: 28, width: "100%", maxWidth: 580, display: "flex", flexDirection: "column", gap: 10 }}>
+                {filteredNotes.map((n) => (
+                  <div key={n.id} className="bd-task" style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.04)", borderLeft: "2px solid #7FA88F" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, alignItems: "center" }}>
+                      <span style={{ fontSize: 11, color: "#6E7080" }}>{fmtDate(n.createdAt)}</span>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <button onClick={() => exportSingleNote(n)} title="Export Transcription as .txt" style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                          <Download size={13} color="#7FA88F" />
+                        </button>
+                        <button onClick={() => deleteNote(n.id)} style={{ background: "none", border: "none", cursor: "pointer" }}>
+                          <Trash2 size={13} color="#6E7080" />
+                        </button>
+                      </div>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 13, color: "#E8E6E1", whiteSpace: "pre-wrap" }}>{n.text}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* COMPANIONS TAB */}
+          {tab === "companion" && (
+            <div style={{ width: "100%", maxWidth: 540, marginTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+              <p style={{ fontSize: 12, color: "#8B8D99", textAlign: "center", margin: "0 0 4px" }}>
+                Unlock mythical companions by leveling up your <strong>Award Tiers</strong> (Phoenix at Tier 10, Turtle at Tier 20, Dragon at Tier 30)!
+              </p>
+
+              {SPECIES.map((sp) => {
+                const unlocked = isSpeciesUnlocked(sp);
+                const pts = Number((companionData[sp.id] || 0).toFixed(1));
+                const stage = stageIndexFor(pts);
+                const currentEmoji = sp.emojis[stage];
+                const inDaycare = !!daycare[sp.id];
+                const currentStageBoost = sp.id === "phoenix" ? stage + 1 : 0;
+
+                return (
+                  <div key={sp.id} style={{ padding: "14px 16px", borderRadius: 12, background: unlocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.01)", border: `1px solid ${unlocked ? sp.color + "33" : "rgba(255,255,255,0.08)"}`, opacity: unlocked ? 1 : 0.6, display: "flex", alignItems: "center", gap: 14, position: "relative" }}>
+                    <div style={{ width: 56, height: 56, borderRadius: "50%", background: unlocked ? `${sp.color}1F` : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: unlocked ? STAGE_SIZES[stage] * 0.5 : 22, flexShrink: 0 }}>
+                      {unlocked ? currentEmoji : <Lock size={22} color="#6E7080" />}
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontWeight: 700, fontSize: 14, color: unlocked ? sp.color : "#8B8D99" }}>{sp.label}</span>
+                        {inDaycare && <span style={{ fontSize: 10, background: "rgba(229,112,126,0.2)", color: "#E5707E", padding: "2px 6px", borderRadius: 10, fontWeight: 600 }}>🏨 Daycare</span>}
+                        {!sp.canDaycare && unlocked && <span style={{ fontSize: 10, background: "rgba(255,215,0,0.15)", color: "#FFD700", padding: "2px 6px", borderRadius: 10, fontWeight: 600 }}>👑 Legendary</span>}
+                      </div>
+
+                      {unlocked ? (
+                        <>
+                          <div style={{ fontSize: 11, color: "#B7B9C4", marginTop: 2 }}>
+                            Level {levelForPoints(pts)}/{LEVEL_CAP} • Stage {stage + 1}/5 ({pts} XP) • {sp.id === "phoenix" ? `Provides +${currentStageBoost}% Boost` : `Likes: ${sp.catLabel}`}
+                          </div>
+                          {(() => {
+                            const lvl = levelForPoints(pts);
+                            const withinLevel = pts - (lvl - 1) * XP_PER_LEVEL;
+                            const pct = lvl >= LEVEL_CAP ? 100 : Math.min(100, (withinLevel / XP_PER_LEVEL) * 100);
+                            return (
+                              <div style={{ marginTop: 4, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                                <div style={{ width: `${pct}%`, height: "100%", background: sp.color, transition: "width 0.3s ease" }} />
+                              </div>
+                            );
+                          })()}
+                          <div style={{ fontSize: 10, color: "#6E7080", marginTop: 4 }}>
+                            {sp.desc} {!sp.canDaycare && "(Cannot be put in daycare)"}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: 11, color: "#E5707E", marginTop: 4 }}>
+                          🔒 Unlocks with: <strong>{sp.unlockAward}</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    {unlocked ? (
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => petCompanion(sp.id)} style={{ background: `${sp.color}2E`, border: "none", color: sp.color, padding: "6px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                          Pet 💕
+                        </button>
+                        {sp.canDaycare ? (
+                          <button onClick={() => toggleDaycare(sp.id)} style={{ background: inDaycare ? "rgba(229,112,126,0.2)" : "rgba(255,255,255,0.06)", border: "none", color: inDaycare ? "#E5707E" : "#B7B9C4", padding: "6px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                            {inDaycare ? "Leave" : "Daycare 🏨"}
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: 10, color: "#6E7080", padding: "6px 0", alignSelf: "center" }}>No Daycare</span>
+                        )}
+                      </div>
+                    ) : (
+                      <button onClick={() => setTab("achievements")} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: "#B7B9C4", padding: "6px 10px", borderRadius: 8, fontSize: 11, cursor: "pointer" }}>
+                        View Tier
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* DAYCARE TAB */}
+          {tab === "daycare" && (
+            <div style={{ width: "100%", maxWidth: 540, marginTop: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ background: "linear-gradient(135deg, rgba(229,112,126,0.15), rgba(242,166,90,0.15))", borderRadius: 12, padding: "16px", border: "1px solid rgba(229,112,126,0.3)", textAlign: "center" }}>
+                <h3 style={{ margin: "0 0 6px", fontSize: 16, color: "#E5707E" }}>🏨 Daycare Nursery</h3>
+                <p style={{ margin: 0, fontSize: 12, color: "#B7B9C4", lineHeight: 1.4 }}>
+                  Companions checked into Daycare passively earn <strong>+{applyXpBoost(1).toFixed(2)} XP every minute</strong>!
+                </p>
+                {isAchievementUnlocked("tier_5") ? (
+                  <span style={{ display: "inline-block", marginTop: 8, fontSize: 11, background: "rgba(127,168,143,0.2)", border: "1px solid rgba(127,168,143,0.4)", color: "#7FA88F", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>
+                    🎉 Tier 5 Master Keeper Unlocked: Expanded to 3 Slots!
+                  </span>
+                ) : (
+                  <span style={{ display: "inline-block", marginTop: 8, fontSize: 11, color: "#8B8D99" }}>
+                    🔒 Reach Tier 5 Award Milestone to unlock the 3rd Daycare Slot!
+                  </span>
+                )}
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <h4 style={{ margin: "4px 0 0", fontSize: 13, color: "#8B8D99" }}>
+                  Currently Resting ({Object.keys(daycare).length} / {maxDaycareSlots} Slots):
+                </h4>
+
+                {Object.keys(daycare).length === 0 ? (
+                  <div style={{ padding: "24px", borderRadius: 12, border: "1px dashed rgba(255,255,255,0.1)", textAlign: "center", color: "#6E7080", fontSize: 13 }}>
+                    No companions in daycare. Check one in below!
+                  </div>
+                ) : (
+                  Object.entries(daycare).map(([spId, startTime]) => {
+                    const sp = SPECIES.find((s) => s.id === spId);
+                    if (!sp) return null;
+                    const pts = Number((companionData[sp.id] || 0).toFixed(1));
+                    const stage = stageIndexFor(pts);
+                    const elapsedMins = Math.floor((nowTime - startTime) / 60000);
+                    const earnedXp = Number((applyXpBoost(elapsedMins)).toFixed(1));
+
+                    return (
+                      <div key={sp.id} style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(229,112,126,0.08)", border: "1px solid rgba(229,112,126,0.25)", display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${sp.color}2E`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: STAGE_SIZES[stage] * 0.45 }}>
+                          {sp.emojis[stage]}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: sp.color }}>{sp.label}</div>
+                          <div style={{ fontSize: 12, color: "#B7B9C4", marginTop: 2 }}>
+                            Level {levelForPoints(pts)}/{LEVEL_CAP} • Resting for: <strong>{elapsedMins}m</strong> (+{earnedXp} XP earned)
+                          </div>
+                        </div>
+                        <button onClick={() => toggleDaycare(sp.id)} style={{ background: "rgba(255,255,255,0.08)", border: "none", color: "#E8E6E1", padding: "6px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
+                          Check Out
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
+                <h4 style={{ margin: "4px 0 0", fontSize: 13, color: "#8B8D99" }}>Eligible Companions:</h4>
+                {SPECIES.filter((sp) => sp.canDaycare && isSpeciesUnlocked(sp) && !daycare[sp.id]).map((sp) => {
+                  const pts = companionData[sp.id] || 0;
+                  const stage = stageIndexFor(pts);
+                  const isFull = Object.keys(daycare).length >= maxDaycareSlots;
+
+                  return (
+                    <div key={sp.id} style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 20 }}>{sp.emojis[stage]}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: sp.color }}>{sp.label}</span>
+                      </div>
+                      <button onClick={() => toggleDaycare(sp.id)} disabled={isFull} style={{ background: isFull ? "rgba(255,255,255,0.03)" : `${sp.color}2E`, border: "none", color: isFull ? "#6E7080" : sp.color, padding: "5px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: isFull ? "not-allowed" : "pointer" }}>
+                        {isFull ? "Daycare Full" : "Check In"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* INVENTORY & SHOP TAB */}
+          {tab === "inventory" && (
+            <div style={{ width: "100%", maxWidth: 540, marginTop: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+              {!inventoryUnlocked ? (
+                <div style={{ padding: "32px 20px", borderRadius: 16, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)", textAlign: "center", color: "#8B8D99" }}>
+                  <Lock size={32} color="#E5707E" style={{ marginBottom: 12 }} />
+                  <h3 style={{ margin: "0 0 6px", color: "#E8E6E1" }}>Inventory & Item Shop Locked</h3>
+                  <p style={{ margin: 0, fontSize: 13 }}>Complete tasks to reach <strong>Tier 30</strong> (Celestial Dragon Award Tier) to unlock your inventory, item shop, and Celestial Dragon!</p>
+                  <p style={{ fontSize: 12, color: "#F2A65A", marginTop: 8, fontWeight: 600 }}>Current Unlocked Tiers: {earnedAwardsCount} / 30</p>
+                </div>
+              ) : (
+                <>
+                  <div style={{ background: "rgba(0,245,212,0.05)", border: "1px solid rgba(0,245,212,0.2)", borderRadius: 12, padding: "16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                      <h3 style={{ margin: 0, fontSize: 15, color: "#00F5D4" }}>🛍️ Task Token Shop</h3>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#F2A65A" }}>🪙 {tokens} Tokens</span>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {SHOP_ITEMS.map((item) => (
+                        <div key={item.id} style={{ padding: "10px 12px", background: "rgba(0,0,0,0.2)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 13, color: "#E8E6E1" }}>{item.name}</div>
+                            <div style={{ fontSize: 11, color: "#8B8D99", marginTop: 2 }}>{item.desc}</div>
+                          </div>
+                          <button onClick={() => buyShopItem(item)} disabled={tokens < item.cost} style={{ background: tokens >= item.cost ? "#00F5D4" : "rgba(255,255,255,0.05)", border: "none", color: tokens >= item.cost ? "#14161F" : "#6E7080", padding: "6px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: tokens >= item.cost ? "pointer" : "not-allowed" }}>
+                            Buy ({item.cost} 🪙)
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 12, padding: "16px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <h3 style={{ margin: "0 0 12px", fontSize: 15, color: "#F7C978" }}>🎒 Your Backpack</h3>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                      <span style={{ fontSize: 12, color: "#8B8D99" }}>Target Companion:</span>
+                      <select value={itemTargetPet} onChange={(e) => setItemTargetPet(e.target.value)} style={{ background: "rgba(255,255,255,0.06)", border: "none", color: "#fff", padding: "4px 8px", borderRadius: 6, fontSize: 12 }}>
+                        {SPECIES.filter(sp => isSpeciesUnlocked(sp)).map((sp) => (
+                          <option key={sp.id} value={sp.id} style={{ background: "#14161F" }}>{sp.emoji} {sp.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {SHOP_ITEMS.map((item) => {
+                        const qty = inventory[item.id] || 0;
+                        return (
+                          <div key={item.id} style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <span style={{ fontSize: 13 }}>{item.name} <strong>x{qty}</strong></span>
+                            {item.type === "consumable" ? (
+                              <button onClick={() => useInventoryItem(item.id)} disabled={qty <= 0} style={{ background: qty > 0 ? "#F7C978" : "rgba(255,255,255,0.05)", border: "none", color: qty > 0 ? "#14161F" : "#6E7080", padding: "5px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: qty > 0 ? "pointer" : "not-allowed" }}>
+                                Use Item
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: 11, color: "#7FA88F", fontWeight: 600 }}>Active Boost (+{qty * 5}%)</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* AWARDS TAB */}
+          {tab === "achievements" && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 520, marginTop: 20, gap: 12 }}>
+              <div style={{ textAlign: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: "#D9A8E5", fontWeight: 700 }}>
+                  🏆 Unlocked Milestones: {earnedAwardsCount} / 30 Tiers
+                </span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: "100%", maxHeight: "60vh", overflowY: "auto", paddingRight: 4 }}>
+                {ACHIEVEMENTS.map((a) => {
+                  const done = isAchievementUnlocked(a.id);
+                  return (
+                    <div key={a.id} style={{ padding: "12px 14px", borderRadius: 10, background: done ? "rgba(217,168,229,0.1)" : "rgba(255,255,255,0.03)", border: done ? "1px solid rgba(217,168,229,0.35)" : "none", opacity: done ? 1 : 0.5 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {done ? <Trophy size={14} color="#D9A8E5" /> : <Lock size={12} color="#6E7080" />}
+                        <span style={{ fontSize: 12, fontWeight: 600 }}>{a.label}</span>
+                      </div>
+                      <p style={{ margin: "4px 0 0", fontSize: 11, color: "#6E7080" }}>{a.desc}</p>
+                      {a.unlocks && (
+                        <div style={{ marginTop: 6, fontSize: 10, fontWeight: 700, color: done ? "#7FA88F" : "#F2A65A", display: "flex", alignItems: "center", gap: 4 }}>
+                          🎁 {a.unlocks}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<BrainDump />);
+  </script>
+</body>
+</html>
